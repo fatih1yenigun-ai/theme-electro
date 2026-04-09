@@ -38,6 +38,18 @@
           <p class="product-subtitle">{{ section.settings.subtitle }}</p>
         {% endif %}
 
+        {% assign features = section.blocks | where: 'type', 'feature' %}
+        {% if features.size > 0 %}
+          <ul class="product-features">
+            {% for block in features %}
+              <li class="product-feature" {{ block.shopify_attributes }}>
+                <svg class="feature-check" xmlns="http://www.w3.org/2000/svg" fill="var(--color-accent)" viewBox="0 0 256 256" width="20" height="20"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm45.66,85.66-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35a8,8,0,0,1,11.32,11.32Z"></path></svg>
+                <span>{{ block.settings.text }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+
         {% if section.settings.show_rating %}
           <div class="product-rating">
             <div class="stars">
@@ -180,6 +192,18 @@
     }
   ],
   "blocks": [
+    {
+      "type": "feature",
+      "name": "Ürün Özelliği",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Özellik Metni",
+          "default": "Anında Plaj Dalgası & Dokulu Görünüm"
+        }
+      ]
+    },
     {
       "type": "trust_badge",
       "name": "Güven Rozeti",

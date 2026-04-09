@@ -291,6 +291,29 @@ button { cursor: pointer; font-family: inherit; }
   color: var(--color-text-muted);
 }
 
+/* Product Feature Highlights */
+.product-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.product-feature {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.feature-check {
+  flex-shrink: 0;
+}
+
 .product-price {
   font-size: 28px;
   font-weight: 800;

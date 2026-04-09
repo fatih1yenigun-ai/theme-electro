@@ -14,12 +14,15 @@
         "show_trust_badges": true
       },
       "blocks": {
+        "feat-1": { "type": "feature", "settings": { "text": "Anında Plaj Dalgası & Dokulu Görünüm" } },
+        "feat-2": { "type": "feature", "settings": { "text": "Premium Toksik Olmayan İçerikler" } },
+        "feat-3": { "type": "feature", "settings": { "text": "Doğal Türetilmiş Koku" } },
         "badge-1": { "type": "trust_badge", "settings": { "icon": "🚚", "label": "Ücretsiz Kargo" } },
         "badge-2": { "type": "trust_badge", "settings": { "icon": "↩️", "label": "30 Gün İade" } },
         "badge-3": { "type": "trust_badge", "settings": { "icon": "🔒", "label": "Güvenli Ödeme" } },
         "badge-4": { "type": "trust_badge", "settings": { "icon": "🌿", "label": "Doğal İçerik" } }
       },
-      "block_order": ["badge-1", "badge-2", "badge-3", "badge-4"]
+      "block_order": ["feat-1", "feat-2", "feat-3", "badge-1", "badge-2", "badge-3", "badge-4"]
     },
     "product-icons-bar": {
       "type": "product-icons-bar",
