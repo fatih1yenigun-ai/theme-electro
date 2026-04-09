@@ -1,66 +1,323 @@
-<header class="site-header">
-  <div class="header-inner">
-    <a href="/" class="header-logo">{{ section.settings.logo_text }}</a>
+{%- style -%}
+  .header-{{ section.id }} {
+    --header-height: {{ section.settings.header_height }}px;
+    --header-logo-width: {{ settings.logo_width }}px;
+    --header-bg: {{ section.settings.bg_color }};
+    --header-text: {{ section.settings.text_color }};
+    --header-border: {{ section.settings.border_color }};
+    --header-nav-font-size: {{ section.settings.nav_font_size | divided_by: 10.0 }}rem;
+    --header-nav-spacing: {{ section.settings.nav_spacing }}px;
+    --header-icon-size: {{ section.settings.icon_size }}px;
+  }
+  @media screen and (max-width: 749px) {
+    .header-{{ section.id }} {
+      --header-logo-width: {{ settings.logo_width_mobile }}px;
+      --header-height: {{ section.settings.mobile_header_height }}px;
+    }
+  }
+{%- endstyle -%}
 
-    <nav class="header-nav">
-      {% for block in section.blocks %}
-        {% if block.type == 'nav_link' %}
-          <a href="{{ block.settings.link }}">{{ block.settings.label }}</a>
-        {% endif %}
-      {% endfor %}
-    </nav>
+<header class="site-header header-{{ section.id }} {% if section.settings.sticky %}site-header--sticky{% endif %} {% if section.settings.transparent %}site-header--transparent{% endif %}"
+  style="background: var(--header-bg); color: var(--header-text); min-height: var(--header-height); border-bottom: {{ section.settings.border_width }}px solid var(--header-border);"
+  data-section-id="{{ section.id }}"
+>
+  <div class="page-width">
+    <div class="header__inner flex items-center justify-between" style="min-height: var(--header-height); gap: var(--header-nav-spacing);">
 
-    <div class="header-icons">
-      <a href="/search" class="header-icon" aria-label="Ara">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-      </a>
-      <a href="/account" class="header-icon" aria-label="Hesap">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      </a>
-      <a href="/cart" class="header-icon" aria-label="Sepet">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-      </a>
-      <button class="menu-toggle" aria-label="Menü">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+      <!-- Mobile menu toggle -->
+      <button class="header__menu-toggle hidden-desktop" aria-label="{{ 'sections.header.menu' | t }}" data-drawer-toggle="mobile-menu">
+        {% render 'icon-hamburger' %}
       </button>
+
+      <!-- Logo -->
+      <div class="header__logo">
+        <a href="/" class="header__logo-link">
+          {%- if settings.logo != blank -%}
+            <img
+              src="{{ settings.logo | image_url: width: 400 }}"
+              alt="{{ shop.name | escape }}"
+              width="{{ settings.logo_width }}"
+              height="{{ settings.logo_width | divided_by: settings.logo.aspect_ratio | round }}"
+              style="max-width: var(--header-logo-width); height: auto;"
+              loading="eager"
+            >
+          {%- else -%}
+            <span class="header__logo-text h4" style="font-size: {{ section.settings.logo_text_size | divided_by: 10.0 }}rem; font-weight: 900; letter-spacing: -0.03em;">
+              {{ shop.name }}
+            </span>
+          {%- endif -%}
+        </a>
+      </div>
+
+      <!-- Desktop Navigation -->
+      <nav class="header__nav hidden-mobile" role="navigation" aria-label="{{ 'sections.header.menu' | t }}" style="font-size: var(--header-nav-font-size);">
+        {%- for link in section.settings.menu.links -%}
+          <div class="header__nav-item{% if link.links.size > 0 %} header__nav-item--has-dropdown{% endif %}">
+            <a href="{{ link.url }}" class="header__nav-link" style="font-weight: {{ section.settings.nav_font_weight }}; text-transform: {% if section.settings.nav_uppercase %}uppercase{% else %}none{% endif %}; letter-spacing: {% if section.settings.nav_uppercase %}0.06em{% else %}0{% endif %};">
+              {{ link.title }}
+              {%- if link.links.size > 0 -%}
+                <span class="header__nav-caret">{% render 'icon-caret' %}</span>
+              {%- endif -%}
+            </a>
+
+            {%- if link.links.size > 0 -%}
+              <div class="header__dropdown" style="background: var(--header-bg); border: 1px solid rgba(var(--color-foreground), 0.1); border-radius: var(--buttons-radius);">
+                {%- for childlink in link.links -%}
+                  <a href="{{ childlink.url }}" class="header__dropdown-link">
+                    {{ childlink.title }}
+                  </a>
+                {%- endfor -%}
+              </div>
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </nav>
+
+      <!-- Header Icons -->
+      <div class="header__icons flex items-center" style="gap: {{ section.settings.icon_spacing }}px;">
+        {%- if section.settings.show_search -%}
+          <a href="/search" class="header__icon" aria-label="{{ 'general.search.search' | t }}" style="width: var(--header-icon-size); height: var(--header-icon-size);">
+            {% render 'icon-search' %}
+          </a>
+        {%- endif -%}
+
+        {%- if section.settings.show_account and shop.customer_accounts_enabled -%}
+          <a href="{%- if customer -%}{{ routes.account_url }}{%- else -%}{{ routes.account_login_url }}{%- endif -%}" class="header__icon hidden-mobile" aria-label="{{ 'customer.account.title' | t }}" style="width: var(--header-icon-size); height: var(--header-icon-size);">
+            {% render 'icon-account' %}
+          </a>
+        {%- endif -%}
+
+        <a href="{{ routes.cart_url }}" class="header__icon header__cart-icon" aria-label="{{ 'general.cart.view' | t: count: cart.item_count }}" style="width: var(--header-icon-size); height: var(--header-icon-size);">
+          {% render 'icon-cart' %}
+          {%- if cart.item_count > 0 -%}
+            <span class="header__cart-count" style="background: rgb(var(--color-accent-1)); color: rgb(var(--color-button-text)); font-size: 1rem; min-width: 1.8rem; height: 1.8rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: absolute; top: -4px; right: -8px; font-weight: 700;">
+              {{ cart.item_count }}
+            </span>
+          {%- endif -%}
+        </a>
+      </div>
     </div>
   </div>
 </header>
 
+<!-- Mobile Drawer -->
+<div class="drawer drawer--left" id="mobile-menu" role="dialog" aria-modal="true" aria-label="{{ 'sections.header.menu' | t }}">
+  <div class="drawer__header flex items-center justify-between" style="padding: 1.6rem; border-bottom: 1px solid rgba(var(--color-foreground), 0.1);">
+    <span class="h5">{{ 'sections.header.menu' | t }}</span>
+    <button class="drawer__close" data-drawer-close aria-label="{{ 'accessibility.close' | t }}">
+      {% render 'icon-close' %}
+    </button>
+  </div>
+  <nav class="drawer__nav" style="padding: 1.6rem;">
+    {%- for link in section.settings.menu.links -%}
+      <a href="{{ link.url }}" class="drawer__nav-link" style="display: block; padding: 1.2rem 0; border-bottom: 1px solid rgba(var(--color-foreground), 0.05); font-size: 1.6rem; font-weight: 500;">
+        {{ link.title }}
+      </a>
+    {%- endfor -%}
+  </nav>
+</div>
+<div class="drawer-overlay" data-drawer-overlay></div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('[data-drawer-toggle]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var id = this.getAttribute('data-drawer-toggle');
+        document.getElementById(id).classList.add('active');
+        document.querySelector('.drawer-overlay').classList.add('active');
+      });
+    });
+    document.querySelectorAll('[data-drawer-close], .drawer-overlay').forEach(function(el) {
+      el.addEventListener('click', function() {
+        document.querySelectorAll('.drawer').forEach(function(d) { d.classList.remove('active'); });
+        document.querySelectorAll('.drawer-overlay').forEach(function(o) { o.classList.remove('active'); });
+      });
+    });
+    {% if section.settings.sticky %}
+    var header = document.querySelector('.site-header--sticky');
+    if (header) {
+      header.style.position = 'sticky';
+      header.style.top = '0';
+      header.style.zIndex = '1000';
+    }
+    {% endif %}
+  });
+</script>
+
 {% schema %}
 {
   "name": "Üst Menü",
+  "tag": "div",
+  "class": "shopify-section--header",
   "settings": [
     {
-      "type": "text",
-      "id": "logo_text",
-      "label": "Logo Metni",
-      "default": "BASED"
+      "type": "header",
+      "content": "Genel"
     },
     {
-      "type": "image_picker",
-      "id": "logo_image",
-      "label": "Logo Görseli"
-    }
-  ],
-  "blocks": [
+      "type": "link_list",
+      "id": "menu",
+      "label": "Ana menü",
+      "default": "main-menu"
+    },
     {
-      "type": "nav_link",
-      "name": "Menü Bağlantısı",
-      "settings": [
-        {
-          "type": "text",
-          "id": "label",
-          "label": "Etiket",
-          "default": "Ürünler"
-        },
-        {
-          "type": "url",
-          "id": "link",
-          "label": "Bağlantı",
-          "default": "/collections/all"
-        }
-      ]
+      "type": "checkbox",
+      "id": "sticky",
+      "default": true,
+      "label": "Yapışkan başlık"
+    },
+    {
+      "type": "checkbox",
+      "id": "transparent",
+      "default": false,
+      "label": "Şeffaf başlık",
+      "info": "Hero bölümünün üzerinde şeffaf olur"
+    },
+    {
+      "type": "header",
+      "content": "Logo"
+    },
+    {
+      "type": "range",
+      "id": "logo_text_size",
+      "min": 16,
+      "max": 40,
+      "step": 2,
+      "default": 26,
+      "unit": "px",
+      "label": "Logo metin boyutu",
+      "info": "Logo görseli yokken kullanılır"
+    },
+    {
+      "type": "header",
+      "content": "Renkler"
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Arka plan rengi",
+      "default": "#0A0A0A"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Metin rengi",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Kenarlık rengi",
+      "default": "#2a2a2a"
+    },
+    {
+      "type": "range",
+      "id": "border_width",
+      "min": 0,
+      "max": 3,
+      "step": 1,
+      "default": 1,
+      "unit": "px",
+      "label": "Kenarlık kalınlığı"
+    },
+    {
+      "type": "header",
+      "content": "Navigasyon"
+    },
+    {
+      "type": "range",
+      "id": "nav_font_size",
+      "min": 11,
+      "max": 18,
+      "step": 1,
+      "default": 14,
+      "unit": "px",
+      "label": "Navigasyon yazı boyutu"
+    },
+    {
+      "type": "range",
+      "id": "nav_font_weight",
+      "min": 400,
+      "max": 700,
+      "step": 100,
+      "default": 500,
+      "label": "Navigasyon yazı kalınlığı"
+    },
+    {
+      "type": "checkbox",
+      "id": "nav_uppercase",
+      "default": false,
+      "label": "Büyük harf navigasyon"
+    },
+    {
+      "type": "range",
+      "id": "nav_spacing",
+      "min": 12,
+      "max": 48,
+      "step": 4,
+      "default": 28,
+      "unit": "px",
+      "label": "Bağlantı aralığı"
+    },
+    {
+      "type": "header",
+      "content": "İkonlar"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search",
+      "default": true,
+      "label": "Arama ikonu göster"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_account",
+      "default": true,
+      "label": "Hesap ikonu göster"
+    },
+    {
+      "type": "range",
+      "id": "icon_size",
+      "min": 16,
+      "max": 28,
+      "step": 2,
+      "default": 20,
+      "unit": "px",
+      "label": "İkon boyutu"
+    },
+    {
+      "type": "range",
+      "id": "icon_spacing",
+      "min": 8,
+      "max": 24,
+      "step": 4,
+      "default": 16,
+      "unit": "px",
+      "label": "İkon aralığı"
+    },
+    {
+      "type": "header",
+      "content": "Boyutlandırma"
+    },
+    {
+      "type": "range",
+      "id": "header_height",
+      "min": 40,
+      "max": 100,
+      "step": 4,
+      "default": 56,
+      "unit": "px",
+      "label": "Masaüstü yükseklik"
+    },
+    {
+      "type": "range",
+      "id": "mobile_header_height",
+      "min": 40,
+      "max": 80,
+      "step": 4,
+      "default": 52,
+      "unit": "px",
+      "label": "Mobil yükseklik"
     }
   ],
   "presets": [

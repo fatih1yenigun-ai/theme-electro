@@ -1,32 +1,260 @@
-<div class="announcement-bar">
-  <p>
-    {% if section.settings.link != blank %}
-      <a href="{{ section.settings.link }}">{{ section.settings.text }}</a>
-    {% else %}
-      {{ section.settings.text }}
-    {% endif %}
-  </p>
+{%- style -%}
+  .announcement-bar-{{ section.id }} {
+    --announcement-bg: {{ section.settings.bg_color }};
+    --announcement-text: {{ section.settings.text_color }};
+    --announcement-height: {{ section.settings.height }}px;
+    --announcement-font-size: {{ section.settings.font_size | divided_by: 10.0 }}rem;
+  }
+{%- endstyle -%}
+
+<div class="announcement-bar announcement-bar-{{ section.id }} color-{{ section.settings.color_scheme }}"
+  style="background: var(--announcement-bg); color: var(--announcement-text); min-height: var(--announcement-height);"
+  role="region" aria-label="{{ 'sections.header.announcement' | t }}"
+>
+  <div class="page-width">
+    <div class="announcement-bar__inner" style="font-size: var(--announcement-font-size); font-weight: {{ section.settings.font_weight }}; text-align: {{ section.settings.text_alignment }}; padding: {{ section.settings.padding_y }}px 0;">
+
+      {%- if section.blocks.size > 1 and section.settings.auto_rotate -%}
+        <div class="announcement-bar__slider" data-autoplay="{{ section.settings.rotation_speed }}">
+      {%- endif -%}
+
+      {%- for block in section.blocks -%}
+        <div class="announcement-bar__message {% if section.blocks.size > 1 and forloop.first == false %}announcement-bar__message--hidden{% endif %}" {{ block.shopify_attributes }}>
+          {%- case block.type -%}
+            {%- when 'message' -%}
+              {%- if block.settings.link != blank -%}
+                <a href="{{ block.settings.link }}" class="announcement-bar__link">
+                  {%- if block.settings.icon != blank -%}
+                    <span class="announcement-bar__icon">{{ block.settings.icon }}</span>
+                  {%- endif -%}
+                  {{ block.settings.text }}
+                </a>
+              {%- else -%}
+                {%- if block.settings.icon != blank -%}
+                  <span class="announcement-bar__icon">{{ block.settings.icon }}</span>
+                {%- endif -%}
+                {{ block.settings.text }}
+              {%- endif -%}
+
+            {%- when 'countdown' -%}
+              <div class="announcement-bar__countdown" data-end-date="{{ block.settings.end_date }}">
+                {%- if block.settings.prefix != blank -%}
+                  <span>{{ block.settings.prefix }}</span>
+                {%- endif -%}
+                <span class="countdown" data-end="{{ block.settings.end_date }}">
+                  <span class="countdown__days">00</span>g
+                  <span class="countdown__hours">00</span>s
+                  <span class="countdown__minutes">00</span>d
+                  <span class="countdown__seconds">00</span>sn
+                </span>
+                {%- if block.settings.suffix != blank -%}
+                  <span>{{ block.settings.suffix }}</span>
+                {%- endif -%}
+              </div>
+          {%- endcase -%}
+        </div>
+      {%- endfor -%}
+
+      {%- if section.blocks.size > 1 and section.settings.auto_rotate -%}
+        </div>
+      {%- endif -%}
+
+    </div>
+  </div>
 </div>
 
 {% schema %}
 {
   "name": "Duyuru Çubuğu",
+  "tag": "section",
+  "class": "shopify-section--announcement",
   "settings": [
     {
-      "type": "text",
-      "id": "text",
-      "label": "Duyuru Metni",
-      "default": "🚚 500 TL Üzeri Ücretsiz Kargo"
+      "type": "header",
+      "content": "Renk"
     },
     {
-      "type": "url",
-      "id": "link",
-      "label": "Bağlantı"
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Renk şeması",
+      "default": "accent-1",
+      "options": [
+        { "value": "accent-1", "label": "Vurgu 1" },
+        { "value": "accent-2", "label": "Vurgu 2" },
+        { "value": "background-1", "label": "Arka plan 1" },
+        { "value": "background-2", "label": "Arka plan 2" },
+        { "value": "inverse", "label": "Ters" }
+      ]
+    },
+    {
+      "type": "color",
+      "id": "bg_color",
+      "label": "Arka plan rengi",
+      "default": "#D4A843"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Metin rengi",
+      "default": "#0A0A0A"
+    },
+    {
+      "type": "header",
+      "content": "Tipografi"
+    },
+    {
+      "type": "range",
+      "id": "font_size",
+      "min": 10,
+      "max": 20,
+      "step": 1,
+      "default": 13,
+      "unit": "px",
+      "label": "Yazı boyutu"
+    },
+    {
+      "type": "range",
+      "id": "font_weight",
+      "min": 400,
+      "max": 800,
+      "step": 100,
+      "default": 600,
+      "label": "Yazı kalınlığı"
+    },
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "label": "Metin hizalama",
+      "default": "center",
+      "options": [
+        { "value": "left", "label": "Sol" },
+        { "value": "center", "label": "Orta" },
+        { "value": "right", "label": "Sağ" }
+      ]
+    },
+    {
+      "type": "header",
+      "content": "Boyutlandırma"
+    },
+    {
+      "type": "range",
+      "id": "height",
+      "min": 24,
+      "max": 60,
+      "step": 2,
+      "default": 36,
+      "unit": "px",
+      "label": "Minimum yükseklik"
+    },
+    {
+      "type": "range",
+      "id": "padding_y",
+      "min": 0,
+      "max": 16,
+      "step": 2,
+      "default": 6,
+      "unit": "px",
+      "label": "Dikey dolgu"
+    },
+    {
+      "type": "header",
+      "content": "Döngü"
+    },
+    {
+      "type": "checkbox",
+      "id": "auto_rotate",
+      "default": true,
+      "label": "Mesajları otomatik döndür"
+    },
+    {
+      "type": "range",
+      "id": "rotation_speed",
+      "min": 2,
+      "max": 10,
+      "step": 1,
+      "default": 5,
+      "unit": "sn",
+      "label": "Döndürme hızı"
+    },
+    {
+      "type": "header",
+      "content": "Kenarlık"
+    },
+    {
+      "type": "range",
+      "id": "border_bottom_width",
+      "min": 0,
+      "max": 3,
+      "step": 1,
+      "default": 0,
+      "unit": "px",
+      "label": "Alt kenarlık kalınlığı"
+    },
+    {
+      "type": "color",
+      "id": "border_color",
+      "label": "Kenarlık rengi",
+      "default": "#000000"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "message",
+      "name": "Mesaj",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Metin",
+          "default": "🚚 500 TL Üzeri Ücretsiz Kargo"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Bağlantı"
+        },
+        {
+          "type": "text",
+          "id": "icon",
+          "label": "İkon (emoji veya metin)",
+          "info": "Metnin başına ikon ekleyin"
+        }
+      ]
+    },
+    {
+      "type": "countdown",
+      "name": "Geri Sayım",
+      "settings": [
+        {
+          "type": "text",
+          "id": "prefix",
+          "label": "Önceki metin",
+          "default": "İndirimlerin bitmesine"
+        },
+        {
+          "type": "text",
+          "id": "end_date",
+          "label": "Bitiş tarihi",
+          "info": "YYYY-MM-DD formatı",
+          "default": "2026-12-31"
+        },
+        {
+          "type": "text",
+          "id": "suffix",
+          "label": "Sonraki metin",
+          "default": "kaldı!"
+        }
+      ]
     }
   ],
   "presets": [
     {
-      "name": "Duyuru Çubuğu"
+      "name": "Duyuru Çubuğu",
+      "blocks": [
+        { "type": "message", "settings": { "text": "🚚 500 TL Üzeri Ücretsiz Kargo" } },
+        { "type": "message", "settings": { "text": "💳 3 Taksit İmkanı" } },
+        { "type": "message", "settings": { "text": "↩️ 30 Gün Koşulsuz İade" } }
+      ]
     }
   ]
 }

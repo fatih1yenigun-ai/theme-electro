@@ -1,0 +1,58 @@
+{%- comment -%}
+  Renders product variant picker (pills or dropdown).
+  Accepts:
+  - product: {Object} Product Liquid object
+  - block: {Object} Block settings
+  - picker_type: {String} 'pills' or 'dropdown'
+  - section_id: {String}
+{%- endcomment -%}
+
+{%- liquid
+  assign picker = picker_type | default: 'pills'
+-%}
+
+{%- unless product.has_only_default_variant -%}
+  <div class="variant-picker variant-picker--{{ picker }}" {{ block.shopify_attributes }}>
+    {%- for option in product.options_with_values -%}
+      <div class="variant-picker__option">
+        <label class="variant-picker__label">
+          {{ option.name }}: <strong>{{ option.selected_value }}</strong>
+        </label>
+
+        {%- if picker == 'pills' -%}
+          <div class="variant-picker__pills">
+            {%- for value in option.values -%}
+              <button
+                type="button"
+                class="variant-pill{% if value == option.selected_value %} selected{% endif %}"
+                data-option-position="{{ option.position }}"
+                data-option-value="{{ value | escape }}"
+                aria-label="{{ value | escape }}"
+              >
+                {{ value }}
+              </button>
+            {%- endfor -%}
+          </div>
+        {%- else -%}
+          <select
+            class="input variant-picker__dropdown"
+            data-option-position="{{ option.position }}"
+          >
+            {%- for value in option.values -%}
+              <option
+                value="{{ value | escape }}"
+                {% if value == option.selected_value %}selected{% endif %}
+              >
+                {{ value }}
+              </option>
+            {%- endfor -%}
+          </select>
+        {%- endif -%}
+      </div>
+    {%- endfor -%}
+
+    <script type="application/json" id="product-variants-{{ section_id }}">
+      {{ product.variants | json }}
+    </script>
+  </div>
+{%- endunless -%}

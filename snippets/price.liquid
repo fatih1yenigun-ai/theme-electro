@@ -1,0 +1,56 @@
+{%- comment -%}
+  Renders product price.
+  Accepts:
+  - product: {Object} Product Liquid object
+  - use_variant: {Boolean} Use selected variant price
+  - show_badges: {Boolean} Show sale/sold-out badges
+  - price_class: {String} Additional CSS class
+{%- endcomment -%}
+
+{%- liquid
+  if use_variant
+    assign target = product.selected_or_first_available_variant
+  else
+    assign target = product
+  endif
+  assign compare_at_price = target.compare_at_price
+  assign price = target.price
+  assign available = target.available
+  assign money_price = price | money
+-%}
+
+<div class="price {{ price_class }}{% if compare_at_price > price %} price--on-sale{% endif %}{% unless available %} price--sold-out{% endunless %}">
+  <div class="price__container">
+    {%- if compare_at_price > price -%}
+      <span class="price__regular">
+        <s class="price__compare">{{ compare_at_price | money }}</s>
+      </span>
+    {%- endif -%}
+    <span class="price__current{% if compare_at_price > price %} price__current--sale{% endif %}">
+      {{ money_price }}
+    </span>
+  </div>
+
+  {%- if show_badges -%}
+    {%- if compare_at_price > price and available -%}
+      {%- assign savings_percent = compare_at_price | minus: price | times: 100.0 | divided_by: compare_at_price | round -%}
+      <span class="badge badge--sale">%{{ savings_percent }} {{ 'products.product.on_sale' | t }}</span>
+    {%- endif -%}
+    {%- unless available -%}
+      <span class="badge badge--sold-out">{{ 'products.product.sold_out' | t }}</span>
+    {%- endunless -%}
+  {%- endif -%}
+
+  {%- if target.unit_price_measurement -%}
+    <div class="price__unit-price text-muted">
+      <span>{{ target.unit_price | money }}</span>
+      <span>{{ 'accessibility.unit_price_separator' | t }}</span>
+      <span>
+        {%- if target.unit_price_measurement.reference_value != 1 -%}
+          {{ target.unit_price_measurement.reference_value }}
+        {%- endif -%}
+        {{ target.unit_price_measurement.reference_unit }}
+      </span>
+    </div>
+  {%- endif -%}
+</div>

@@ -1,0 +1,44 @@
+{%- comment -%}
+  Renders social media icon links from theme settings.
+  Accepts:
+  - icon_size: {String} 'sm', 'md', 'lg'
+{%- endcomment -%}
+
+{%- liquid
+  assign size_class = icon_size | default: 'md'
+-%}
+
+{%- if settings.show_social -%}
+  <div class="social-icons social-icons--{{ size_class }}">
+    {%- if settings.social_instagram_link != blank -%}
+      <a href="{{ settings.social_instagram_link }}" target="_blank" rel="noopener noreferrer" class="social-icons__link" aria-label="Instagram">
+        {% render 'icon-instagram' %}
+      </a>
+    {%- endif -%}
+    {%- if settings.social_facebook_link != blank -%}
+      <a href="{{ settings.social_facebook_link }}" target="_blank" rel="noopener noreferrer" class="social-icons__link" aria-label="Facebook">
+        {% render 'icon-facebook' %}
+      </a>
+    {%- endif -%}
+    {%- if settings.social_twitter_link != blank -%}
+      <a href="{{ settings.social_twitter_link }}" target="_blank" rel="noopener noreferrer" class="social-icons__link" aria-label="Twitter">
+        {% render 'icon-twitter' %}
+      </a>
+    {%- endif -%}
+    {%- if settings.social_youtube_link != blank -%}
+      <a href="{{ settings.social_youtube_link }}" target="_blank" rel="noopener noreferrer" class="social-icons__link" aria-label="YouTube">
+        {% render 'icon-youtube' %}
+      </a>
+    {%- endif -%}
+    {%- if settings.social_tiktok_link != blank -%}
+      <a href="{{ settings.social_tiktok_link }}" target="_blank" rel="noopener noreferrer" class="social-icons__link" aria-label="TikTok">
+        {% render 'icon-tiktok' %}
+      </a>
+    {%- endif -%}
+    {%- if settings.social_pinterest_link != blank -%}
+      <a href="{{ settings.social_pinterest_link }}" target="_blank" rel="noopener noreferrer" class="social-icons__link" aria-label="Pinterest">
+        {% render 'icon-pinterest' %}
+      </a>
+    {%- endif -%}
+  </div>
+{%- endif -%}

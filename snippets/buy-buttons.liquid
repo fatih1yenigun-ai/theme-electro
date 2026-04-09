@@ -1,0 +1,43 @@
+{%- comment -%}
+  Renders buy buttons (add to cart + dynamic checkout).
+  Accepts:
+  - product: {Object} Product Liquid object
+  - block: {Object} Block settings
+  - show_dynamic_checkout: {Boolean}
+  - btn_text: {String} Button text override
+{%- endcomment -%}
+
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign show_dynamic = show_dynamic_checkout | default: true
+  assign button_text = btn_text | default: 'products.product.add_to_cart' | t
+-%}
+
+<div class="buy-buttons" {{ block.shopify_attributes }}>
+  <form method="post" action="/cart/add" id="product-form-{{ section.id }}" class="product-form">
+    <input type="hidden" name="id" value="{{ current_variant.id }}" id="variant-id-{{ section.id }}">
+
+    <div class="buy-buttons__group">
+      <button
+        type="submit"
+        name="add"
+        class="btn btn--primary btn--full-width buy-buttons__add-to-cart"
+        {% unless current_variant.available %}disabled{% endunless %}
+      >
+        <span>
+          {%- if current_variant.available -%}
+            {{ button_text }}
+          {%- else -%}
+            {{ 'products.product.sold_out' | t }}
+          {%- endif -%}
+        </span>
+      </button>
+
+      {%- if show_dynamic -%}
+        <div class="buy-buttons__dynamic-checkout">
+          {{ form | payment_button }}
+        </div>
+      {%- endif -%}
+    </div>
+  </form>
+</div>

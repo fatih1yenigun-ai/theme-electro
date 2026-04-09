@@ -1,33 +1,254 @@
 <!doctype html>
-<html lang="tr">
+<html class="no-js" lang="{{ request.locale.iso_code }}" dir="{% if settings.enable_rtl %}rtl{% else %}ltr{% endif %}">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ page_title }} — {{ shop.name }}</title>
-  <meta name="description" content="{{ page_description }}">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, height=device-height, minimum-scale=1.0">
+  <meta name="theme-color" content="{{ settings.colors_background_1 }}">
+
+  <title>{{ page_title }}{% if current_tags %} &ndash; {{ current_tags | join: ', ' }}{% endif %}{% unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless %}</title>
+
+  {% if page_description %}
+    <meta name="description" content="{{ page_description | escape }}">
+  {% endif %}
+
+  {% render 'meta-tags' %}
+
   {{ content_for_header }}
+
+  {%- liquid
+    assign body_font_bold = settings.type_body_font | font_modify: 'weight', 'bold'
+    assign body_font_italic = settings.type_body_font | font_modify: 'style', 'italic'
+    assign body_font_bold_italic = body_font_bold | font_modify: 'style', 'italic'
+  -%}
+
+  {% unless settings.type_body_font.system? %}
+    <link rel="preload" as="font" href="{{ settings.type_body_font | font_url }}" type="font/woff2" crossorigin>
+  {% endunless %}
+  {% unless settings.type_header_font.system? %}
+    <link rel="preload" as="font" href="{{ settings.type_header_font | font_url }}" type="font/woff2" crossorigin>
+  {% endunless %}
+
+  {% if settings.custom_header_font_link != blank %}
+    <link rel="stylesheet" href="{{ settings.custom_header_font_link }}">
+  {% endif %}
+  {% if settings.custom_body_font_link != blank %}
+    <link rel="stylesheet" href="{{ settings.custom_body_font_link }}">
+  {% endif %}
+  {% if settings.custom_body_bold_font_link != blank %}
+    <link rel="stylesheet" href="{{ settings.custom_body_bold_font_link }}">
+  {% endif %}
+
+  {%- if settings.favicon != blank -%}
+    <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
+  {%- endif -%}
+
   {{ 'custom.css' | asset_url | stylesheet_tag }}
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    {{ settings.type_body_font | font_face: font_display: 'swap' }}
+    {{ body_font_bold | font_face: font_display: 'swap' }}
+    {{ body_font_italic | font_face: font_display: 'swap' }}
+    {{ body_font_bold_italic | font_face: font_display: 'swap' }}
+    {{ settings.type_header_font | font_face: font_display: 'swap' }}
+
+    {% if settings.custom_header_font_name != blank %}
+      :root { --font-heading-family: '{{ settings.custom_header_font_name }}', {{ settings.type_header_font.fallback_families }}; }
+    {% endif %}
+    {% if settings.custom_body_font_name != blank %}
+      :root { --font-body-family: '{{ settings.custom_body_font_name }}', {{ settings.type_body_font.fallback_families }}; }
+    {% endif %}
+  </style>
+
+  {% style %}
+    :root {
+      /* === Font families === */
+      --font-body-family: {{ settings.type_body_font.family }}, {{ settings.type_body_font.fallback_families }};
+      --font-body-style: {{ settings.type_body_font.style }};
+      --font-body-weight: {{ settings.type_body_font.weight }};
+      --font-body-weight-bold: {{ settings.custom_body_font_weight | plus: 300 | at_most: 900 }};
+
+      --font-heading-family: {{ settings.type_header_font.family }}, {{ settings.type_header_font.fallback_families }};
+      --font-heading-style: {{ settings.type_header_font.style }};
+      --font-heading-weight: {{ settings.type_header_font.weight }};
+
+      /* === Font scales === */
+      --font-body-scale: {{ settings.body_scale | times: 1.0 | divided_by: 100.0 }};
+      --font-heading-scale: {{ settings.heading_scale | times: 1.0 | divided_by: 100.0 }};
+      --font-heading-line-height: {{ settings.heading_line_height | times: 1.0 | divided_by: 10.0 }};
+      --font-body-line-height: {{ settings.body_line_height | times: 1.0 | divided_by: 10.0 }};
+      --font-heading-letter-spacing: {{ settings.heading_letter_spacing | times: 1.0 | divided_by: 10.0 }}em;
+      --font-body-letter-spacing: {{ settings.body_letter_spacing | times: 1.0 | divided_by: 10.0 }}em;
+
+      /* === Colors (RGB triplets for rgba() usage) === */
+      --color-foreground: {{ settings.colors_text.red }}, {{ settings.colors_text.green }}, {{ settings.colors_text.blue }};
+      --color-background: {{ settings.colors_background_1.red }}, {{ settings.colors_background_1.green }}, {{ settings.colors_background_1.blue }};
+      --color-background-2: {{ settings.colors_background_2.red }}, {{ settings.colors_background_2.green }}, {{ settings.colors_background_2.blue }};
+      --color-accent-1: {{ settings.colors_accent_1.red }}, {{ settings.colors_accent_1.green }}, {{ settings.colors_accent_1.blue }};
+      --color-accent-2: {{ settings.colors_accent_2.red }}, {{ settings.colors_accent_2.green }}, {{ settings.colors_accent_2.blue }};
+      --color-button: {{ settings.colors_accent_1.red }}, {{ settings.colors_accent_1.green }}, {{ settings.colors_accent_1.blue }};
+      --color-button-text: {{ settings.colors_solid_button_labels.red }}, {{ settings.colors_solid_button_labels.green }}, {{ settings.colors_solid_button_labels.blue }};
+      --color-outline-button-labels: {{ settings.colors_outline_button_labels.red }}, {{ settings.colors_outline_button_labels.green }}, {{ settings.colors_outline_button_labels.blue }};
+
+      /* === Gradients === */
+      --gradient-accent-1: {% if settings.gradient_accent_1 != blank %}{{ settings.gradient_accent_1 }}{% else %}{{ settings.colors_accent_1 }}{% endif %};
+      --gradient-accent-2: {% if settings.gradient_accent_2 != blank %}{{ settings.gradient_accent_2 }}{% else %}{{ settings.colors_accent_2 }}{% endif %};
+      --gradient-background-1: {% if settings.gradient_background_1 != blank %}{{ settings.gradient_background_1 }}{% else %}{{ settings.colors_background_1 }}{% endif %};
+      --gradient-background-2: {% if settings.gradient_background_2 != blank %}{{ settings.gradient_background_2 }}{% else %}{{ settings.colors_background_2 }}{% endif %};
+
+      /* === Layout === */
+      --page-width: {{ settings.page_width }}px;
+      --spacing-sections: {{ settings.spacing_sections }}px;
+      --spacing-grid-h: {{ settings.spacing_grid_horizontal }}px;
+      --spacing-grid-v: {{ settings.spacing_grid_vertical }}px;
+
+      /* === Buttons === */
+      --buttons-radius: {{ settings.buttons_radius }}px;
+      --buttons-border-width: {{ settings.buttons_border_thickness }}px;
+      --buttons-border-opacity: {{ settings.buttons_border_opacity | times: 1.0 | divided_by: 100.0 }};
+      --buttons-shadow: {{ settings.buttons_shadow_horizontal_offset }}px {{ settings.buttons_shadow_vertical_offset }}px {{ settings.buttons_shadow_blur }}px rgba(var(--color-foreground), {{ settings.buttons_shadow_opacity | times: 1.0 | divided_by: 100.0 }});
+
+      /* === Badges === */
+      --badge-corner-radius: {{ settings.badge_corner_radius }}px;
+
+      /* === Cards === */
+      --card-corner-radius: {{ settings.card_corner_radius }}px;
+      --card-border-width: {{ settings.card_border_thickness }}px;
+      --card-border-opacity: {{ settings.card_border_opacity | times: 1.0 | divided_by: 100.0 }};
+      --card-shadow: {{ settings.card_shadow_horizontal_offset }}px {{ settings.card_shadow_vertical_offset }}px {{ settings.card_shadow_blur }}px rgba(var(--color-foreground), {{ settings.card_shadow_opacity | times: 1.0 | divided_by: 100.0 }});
+
+      /* === Media === */
+      --media-radius: {{ settings.media_radius }}px;
+      --media-border-width: {{ settings.media_border_thickness }}px;
+      --media-border-opacity: {{ settings.media_border_opacity | times: 1.0 | divided_by: 100.0 }};
+      --media-shadow: {{ settings.media_shadow_horizontal_offset }}px {{ settings.media_shadow_vertical_offset }}px {{ settings.media_shadow_blur }}px rgba(var(--color-foreground), {{ settings.media_shadow_opacity | times: 1.0 | divided_by: 100.0 }});
+
+      /* === Inputs === */
+      --inputs-radius: {{ settings.inputs_radius }}px;
+      --inputs-border-width: {{ settings.inputs_border_thickness }}px;
+      --inputs-border-opacity: {{ settings.inputs_border_opacity | times: 1.0 | divided_by: 100.0 }};
+
+      /* === Variant pills === */
+      --variant-pills-radius: {{ settings.variant_pills_radius }}px;
+      --variant-pills-border-width: {{ settings.variant_pills_border_thickness }}px;
+      --variant-pills-border-opacity: {{ settings.variant_pills_border_opacity | times: 1.0 | divided_by: 100.0 }};
+
+      /* === Popups === */
+      --popup-radius: {{ settings.popup_corner_radius }}px;
+      --popup-shadow: 0 0 {{ settings.popup_shadow_blur }}px rgba(0, 0, 0, {{ settings.popup_shadow_opacity | times: 1.0 | divided_by: 100.0 }});
+      --popup-overlay: rgba({{ settings.popup_overlay_color.red }}, {{ settings.popup_overlay_color.green }}, {{ settings.popup_overlay_color.blue }}, {{ settings.popup_overlay_opacity | times: 1.0 | divided_by: 100.0 }});
+
+      /* === Drawers === */
+      --drawer-width: {{ settings.drawer_width }}px;
+      --drawer-overlay: rgba({{ settings.drawer_overlay_color.red }}, {{ settings.drawer_overlay_color.green }}, {{ settings.drawer_overlay_color.blue }}, {{ settings.drawer_overlay_opacity | times: 1.0 | divided_by: 100.0 }});
+
+      /* === Slider === */
+      --slider-arrow-size: {{ settings.slider_arrow_size }}px;
+      --slider-arrow-radius: {{ settings.slider_arrow_border_radius }}%;
+      --pagination-dot-width: {{ settings.pagination_dot_width }}px;
+      --pagination-dot-height: {{ settings.pagination_dot_height }}px;
+      --pagination-dot-radius: {{ settings.pagination_dot_radius }}px;
+      --pagination-dot-spacing: {{ settings.pagination_dot_spacing }}px;
+
+      /* === Scrollbar === */
+      --scrollbar-width: {{ settings.scrollbar_width }}px;
+      --scrollbar-track: {{ settings.scrollbar_track_color }};
+      --scrollbar-thumb: {{ settings.scrollbar_thumb_color }};
+      --scrollbar-thumb-radius: {{ settings.scrollbar_thumb_radius }}px;
+
+      /* === Animations === */
+      --animation-duration: {{ settings.animation_duration }}ms;
+      --animation-delay: {{ settings.animation_init_delay }}ms;
+      --animation-children-delay: {{ settings.animation_children_delay }}ms;
+    }
+  {% endstyle %}
 </head>
-<body>
+
+<body class="gradient">
+  <a class="skip-to-content-link visually-hidden" href="#MainContent">
+    {{ 'accessibility.skip_to_content' | t }}
+  </a>
+
   {% sections 'header-group' %}
-  <main id="MainContent" role="main">
+
+  <main id="MainContent" role="main" tabindex="-1">
     {{ content_for_layout }}
   </main>
+
   {% sections 'footer-group' %}
 
   <script>
-    // Accordion toggle
-    document.addEventListener('DOMContentLoaded', function() {
-      document.querySelectorAll('.faq-question').forEach(function(btn) {
-        btn.addEventListener('click', function() {
-          var item = this.closest('.faq-item');
-          var isOpen = item.classList.contains('active');
-          item.closest('.faq-list').querySelectorAll('.faq-item').forEach(function(el) {
-            el.classList.remove('active');
+    document.documentElement.className = document.documentElement.className.replace('no-js', 'js');
+
+    /* Shopify routes */
+    window.shopUrl = '{{ request.origin }}';
+    window.routes = {
+      cart_add_url: '{{ routes.cart_add_url }}',
+      cart_change_url: '{{ routes.cart_change_url }}',
+      cart_update_url: '{{ routes.cart_update_url }}',
+      cart_url: '{{ routes.cart_url }}',
+      predictive_search_url: '{{ routes.predictive_search_url }}'
+    };
+
+    /* Cart strings */
+    window.cartStrings = {
+      error: `{{ 'sections.cart.cart_error' | t }}`,
+      quantityError: `{{ 'sections.cart.cart_quantity_error' | t: quantity: '[quantity]' }}`
+    };
+
+    /* Accessibility strings */
+    window.accessibilityStrings = {
+      imageAvailable: `{{ 'products.product.media.image_available' | t: index: '[index]' }}`,
+      shareSuccess: `{{ 'general.share.success_message' | t }}`
+    };
+  </script>
+
+  {% if settings.enable_load_animations %}
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        var observer = new IntersectionObserver(function(entries) {
+          entries.forEach(function(entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('animate-in');
+              {% unless settings.repeat_section_animations %}
+                observer.unobserve(entry.target);
+              {% endunless %}
+            } else {
+              {% if settings.repeat_section_animations %}
+                entry.target.classList.remove('animate-in');
+              {% endif %}
+            }
           });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.section-animate').forEach(function(el) {
+          observer.observe(el);
+        });
+      });
+    </script>
+  {% endif %}
+
+  {% if settings.custom_scrollbar %}
+    <style>
+      ::-webkit-scrollbar { width: var(--scrollbar-width); }
+      ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+      ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: var(--scrollbar-thumb-radius); }
+      ::-webkit-scrollbar-thumb:hover { opacity: 0.8; }
+    </style>
+  {% endif %}
+
+  <!-- FAQ Accordion -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      document.querySelectorAll('.faq-question, [data-accordion-trigger]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          var item = this.closest('.faq-item, [data-accordion-item]');
+          if (!item) return;
+          var parent = item.closest('.faq-list, [data-accordion-group]');
+          var isOpen = item.classList.contains('active');
+          if (parent) {
+            parent.querySelectorAll('.faq-item, [data-accordion-item]').forEach(function(el) {
+              el.classList.remove('active');
+            });
+          }
           if (!isOpen) item.classList.add('active');
         });
       });

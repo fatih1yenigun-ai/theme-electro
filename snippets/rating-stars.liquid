@@ -1,0 +1,33 @@
+{%- comment -%}
+  Renders rating stars.
+  Accepts:
+  - rating: {Number} 1-5 rating value
+  - max: {Number} Maximum stars (default 5)
+  - size: {String} 'sm', 'md', 'lg'
+  - color: {String} CSS color value
+  - show_count: {Boolean}
+  - count: {Number} Review count
+  - count_text: {String} Text after count
+{%- endcomment -%}
+
+{%- liquid
+  assign rating_value = rating | default: 5
+  assign max_stars = max | default: 5
+  assign star_size = size | default: 'md'
+  assign star_color = color | default: 'rgb(var(--color-accent-1))'
+-%}
+
+<div class="rating rating--{{ star_size }}" style="--star-color: {{ star_color }};" role="img" aria-label="{{ 'accessibility.star_reviews_info' | t: rating_value: rating_value, rating_max: max_stars }}">
+  <div class="rating__stars" aria-hidden="true">
+    {%- for i in (1..max_stars) -%}
+      {%- if i <= rating_value -%}
+        <span class="rating__star rating__star--filled">{% render 'icon-star' %}</span>
+      {%- else -%}
+        <span class="rating__star rating__star--empty">{% render 'icon-star-outline' %}</span>
+      {%- endif -%}
+    {%- endfor -%}
+  </div>
+  {%- if show_count and count -%}
+    <span class="rating__count text-muted">({{ count }}{% if count_text %} {{ count_text }}{% endif %})</span>
+  {%- endif -%}
+</div>
